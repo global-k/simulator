@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留学支援制度シミュレーター｜九州産業大学 グローバル教育センター</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Meiryo',sans-serif;background:#f5f5f2;color:#2c2c2a;min-height:100vh;padding:2rem 1rem}
+.page{max-width:780px;margin:0 auto}
+.page-header{margin-bottom:1.5rem}
+.page-header h1{font-size:20px;font-weight:500;color:#2c2c2a;margin-bottom:4px}
+.page-header p{font-size:13px;color:#5f5e5a}
+.sec-label{font-size:11px;font-weight:500;color:#5f5e5a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,.1);border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
+.group-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.group-badge{font-size:12px;font-weight:500;padding:3px 10px;border-radius:8px}
+.badge-A{background:#E1F5EE;color:#085041}
+.badge-B{background:#EEEDFE;color:#3C3489}
+.badge-C{background:#FAEEDA;color:#633806}
+.badge-FSP{background:#E6F1FB;color:#0C447C;font-size:11px;padding:2px 8px;border-radius:8px}
+.group-title{font-size:15px;font-weight:500;color:#2c2c2a}
+.sub-title{font-size:13px;font-weight:500;color:#5f5e5a;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-row.solo{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:#5f5e5a}
+.field select,.field input[type=number]{font-size:13px;color:#2c2c2a;padding:7px 10px;border:0.5px solid rgba(0,0,0,.2);border-radius:8px;background:#fff;width:100%;outline:none}
+.field select:focus,.field input[type=number]:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.15)}
+.chk-group{display:flex;flex-direction:column;gap:7px}
+.chk-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#2c2c2a;cursor:pointer}
+.chk-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#185FA5}
+.chk-item.dis{opacity:.4;cursor:not-allowed}
+.badge-sm{font-size:11px;padding:2px 7px;border-radius:8px;margin-left:4px}
+.bi{background:#E6F1FB;color:#0C447C}
+.bw{background:#FAEEDA;color:#633806}
+.bg{background:#E1F5EE;color:#085041}
+.warn{background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:8px;padding:8px 10px;font-size:12px;color:#633806;margin-top:8px;display:none}
+.info-box{background:#E6F1FB;border:0.5px solid #85B7EB;border-radius:8px;padding:8px 10px;font-size:12px;color:#0C447C;margin-bottom:10px}
+.calc-btn{width:100%;padding:10px;font-size:14px;font-weight:500;border:0.5px solid rgba(0,0,0,.2);border-radius:8px;cursor:pointer;background:#fff;color:#2c2c2a;margin-top:.75rem;transition:.15s}
+.calc-btn:hover{background:#f5f5f2}
+.calc-btn:active{transform:scale(.98)}
+.result-wrap{margin-top:1.5rem;border-top:0.5px solid rgba(0,0,0,.1);padding-top:1.25rem;display:none}
+.result-title{font-size:16px;font-weight:500;color:#2c2c2a;margin-bottom:1rem}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1rem}
+.metric{background:#f5f5f2;border-radius:8px;padding:10px 12px}
+.metric-lbl{font-size:11px;color:#5f5e5a;margin-bottom:3px;line-height:1.4}
+.metric-val{font-size:20px;font-weight:500;color:#2c2c2a}
+.metric-val.hi{color:#185FA5}
+.chart-wrap{position:relative;width:100%;height:280px;margin-bottom:1rem}
+.breakdown-wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bk-card{background:#fff;border:0.5px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px}
+.bk-head{font-size:12px;font-weight:500;margin-bottom:6px;line-height:1.4}
+.bk-head-A{color:#085041}
+.bk-head-B{color:#3C3489}
+.bk-head-C{color:#633806}
+.bk-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:0.5px solid rgba(0,0,0,.07);color:#5f5e5a}
+.bk-row:last-child{border-bottom:none;font-weight:500;color:#2c2c2a}
+.bk-amt{color:#2c2c2a}
+.bk-sub{font-size:11px;color:#5f5e5a;margin:4px 0 6px;padding-bottom:4px;border-bottom:0.5px solid rgba(0,0,0,.07);font-weight:500}
+.note{background:#f5f5f2;border-left:3px solid rgba(0,0,0,.15);padding:8px 10px;font-size:12px;color:#5f5e5a;line-height:1.6;margin-top:8px}
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:12px;color:#5f5e5a}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-box{width:10px;height:10px;border-radius:2px}
+.divider{border:none;border-top:0.5px solid rgba(0,0,0,.1);margin:10px 0}
+.footer{text-align:center;font-size:11px;color:#888780;margin-top:2rem;padding-top:1rem;border-top:0.5px solid rgba(0,0,0,.08)}
+@media(max-width:600px){
+  .metric-grid{grid-template-columns:repeat(2,1fr)}
+  .breakdown-wrap{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <h1>留学支援制度シミュレーター</h1>
+    <p>九州産業大学 グローバル教育センター｜グループA・B・Cそれぞれの支援金額を入力し、合計を確認できます</p>
+  </div>
+
+  <div class="card">
+    <div class="group-header">
+      <span class="group-badge badge-A">グループA</span>
+      <span class="group-title">アチーブメント奨励金対象</span>
+    </div>
+    <div class="chk-group" style="margin-bottom:10px">
+      <label class="chk-item"><input type="checkbox" id="chk-a-none" checked onchange="syncAApply('none')">申請しない</label>
+      <label class="chk-item"><input type="checkbox" id="chk-a-apply" onchange="syncAApply('apply')">申請する</label>
+    </div>
+    <div id="a-detail" style="display:none">
+      <div class="info-box">
+        <label class="chk-item" style="margin:0">
+          <input type="checkbox" id="chk-fsp" onchange="syncFSP()" style="width:15px;height:15px;accent-color:#185FA5">
+          <span>ファーストステッププログラム（初めての海外）参加者［1年次後期以降に参加］ <span class="badge-FSP">個人留学支援制度を2回申請可</span></span>
+        </label>
+      </div>
+      <div id="fsp-round1-label" style="display:none;margin-bottom:8px">
+        <p class="sub-title"><span class="badge-sm bg">1回目の留学</span></p>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>プログラム費用（万円）</label><input type="number" id="a-cost" value="40" min="0" max="200" step="1"></div>
+        <div class="field"><label>留学先エリア</label>
+          <select id="a-area"><option value="asia">アジア圏</option><option value="other">アジア圏以外</option></select>
+        </div>
+      </div>
+      <p class="sec-label">申請する制度</p>
+      <div class="chk-group">
+        <label class="chk-item" id="lbl-kojin"><input type="checkbox" id="chk-kojin" checked onchange="syncA()">個人留学支援制度<span class="badge-sm bi">アジア7万/他10万</span></label>
+        <label class="chk-item" id="lbl-gakubu"><input type="checkbox" id="chk-gakubu" onchange="syncA()">学部カリキュラム<span class="badge-sm bi">研修費10%・上限3万</span></label>
+        <label class="chk-item" id="lbl-achieve"><input type="checkbox" id="chk-achieve" checked onchange="syncA()">アチーブメント奨励金<span class="badge-sm bi">語学スコア連動</span></label>
+        <label class="chk-item" id="lbl-ojt"><input type="checkbox" id="chk-ojt" onchange="syncA()">Overseas Job Training（OJT）<span class="badge-sm bw">アチーブメントのみ</span></label>
+      </div>
+      <div class="warn" id="warn-ojt">⚠ OJT選択時は個人留学・学部カリキュラムとの重複不可。アチーブメントのみ申請できます。</div>
+      <div id="achieve-lv-wrap" style="margin-top:10px">
+        <div class="field"><label>語学レベル（渡航前スコアで判定）</label>
+          <select id="a-lv">
+            <option value="0">未取得 / 対象外</option>
+            <option value="20">レベルD — TOEIC 400〜429 / TOEFL 33〜44 — 20万円</option>
+            <option value="30" selected>レベルC — TOEIC 430〜595 / TOEFL 45〜68 — 30万円</option>
+            <option value="40">レベルB — TOEIC 600〜695 / TOEFL 69〜99 — 40万円</option>
+            <option value="50">レベルA — TOEIC 700〜795 / TOEFL 100〜118 — 50万円</option>
+            <option value="70">レベルS — TOEIC 800〜 / TOEFL 119〜120 — 70万円</option>
+          </select>
+        </div>
+      </div>
+      <div id="a-round2" style="display:none">
+        <hr class="divider">
+        <p class="sub-title" style="margin-top:4px"><span class="badge-sm bg">2回目の留学</span>個人留学支援制度</p>
+        <div class="chk-group" style="margin-bottom:10px">
+          <label class="chk-item"><input type="checkbox" id="chk-a2-none" onchange="syncA2('none')">申請しない</label>
+          <label class="chk-item"><input type="checkbox" id="chk-a2-apply" checked onchange="syncA2('apply')">申請する</label>
+        </div>
+        <div id="a2-detail">
+          <div class="form-row">
+            <div class="field"><label>プログラム費用（万円）</label><input type="number" id="a2-cost" value="20" min="0" max="200" step="1"></div>
+            <div class="field"><label>留学先エリア</label>
+              <select id="a2-area"><option value="asia">アジア圏</option><option value="other">アジア圏以外</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="group-header">
+      <span class="group-badge badge-B">グループB</span>
+      <span class="group-title">派遣留学</span>
+    </div>
+    <div class="chk-group" style="margin-bottom:10px">
+      <label class="chk-item"><input type="checkbox" id="chk-b-none" checked onchange="syncB('none')">申請しない</label>
+      <label class="chk-item"><input type="checkbox" id="chk-b-all" onchange="syncB('all')">派遣留学（全学部対象）</label>
+      <label class="chk-item"><input type="checkbox" id="chk-b-art" onchange="syncB('art')">派遣留学（芸術・建築都市工学部）</label>
+    </div>
+    <div id="b-dest-all" style="display:none">
+      <div class="field"><label>派遣先大学</label>
+        <select id="b-dest">
+          <option value="40">リーズ・ベケット大学（英）— 40万円</option>
+          <option value="40">ハワイ大学ウエストオアフ校（米）— 40万円</option>
+          <option value="40">ミシガン州立大学（米）— 40万円</option>
+          <option value="40">リール・カトリック大学（仏）— 40万円</option>
+          <option value="20">中国人民大学（中）— 20万円</option>
+          <option value="20">東国大学校（韓）— 20万円</option>
+          <option value="20">東亜大学校（韓）— 20万円</option>
+          <option value="20">培材大学校（韓）— 20万円</option>
+          <option value="20">建陽大学校（韓）— 20万円</option>
+          <option value="20">梨花女子大学校（韓・商学部限定）— 20万円</option>
+        </select>
+      </div>
+    </div>
+    <div id="b-dest-art" style="display:none">
+      <div class="field"><label>派遣先大学</label>
+        <select id="b-art-dest">
+          <option value="40">シュトゥットガルト造形美術大学（独）— 40万円</option>
+          <option value="30">ボルドー美術学校（仏・芸術学部のみ）— 30万円</option>
+        </select>
+      </div>
+      <p class="note" style="margin-top:6px">2大学の併願可。建築都市工学部はドイツのみ対象。面接時に英語での作品審査あり。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="group-header">
+      <span class="group-badge badge-C">グループC</span>
+      <span class="group-title">GLP（グローバル・リーダーシップ・プログラム）</span>
+    </div>
+    <div class="chk-group" style="margin-bottom:10px">
+      <label class="chk-item"><input type="checkbox" id="chk-c-none" checked onchange="syncC('none')">申請しない</label>
+      <label class="chk-item"><input type="checkbox" id="chk-c-iv" onchange="syncC('iv')">GLPⅣ（海外留学語学研修）</label>
+      <label class="chk-item"><input type="checkbox" id="chk-c-v" onchange="syncC('v')">GLPⅤ（海外展開企業実習）</label>
+    </div>
+    <div id="c-cost-wrap" style="display:none">
+      <div class="form-row solo">
+        <div class="field"><label>プログラム費用・現地宿泊費等（万円）</label><input type="number" id="c-cost" value="30" min="0" max="200" step="1"></div>
+      </div>
+      <p class="note">実費全額を支給。ⅣとⅤの両方の申請はできません。</p>
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calcAll()">▶ 3グループ合計を計算する</button>
+
+  <div class="result-wrap" id="result-all">
+    <p class="result-title">シミュレーション結果</p>
+    <div class="metric-grid">
+      <div class="metric"><p class="metric-lbl">グループA（アチーブメント奨励金対象）</p><p class="metric-val" id="rv-a" style="color:#1D9E75">—</p></div>
+      <div class="metric"><p class="metric-lbl">グループB（派遣留学）</p><p class="metric-val" id="rv-b" style="color:#534AB7">—</p></div>
+      <div class="metric"><p class="metric-lbl">グループC（GLP）</p><p class="metric-val" id="rv-c" style="color:#BA7517">—</p></div>
+      <div class="metric"><p class="metric-lbl">3グループ合計</p><p class="metric-val hi" id="rv-total">—</p></div>
+    </div>
+    <div class="legend-row" id="legend-area"></div>
+    <div class="chart-wrap">
+      <canvas id="chart-main" role="img" aria-label="グループA・B・C別の支援金額と合計を示す積み上げ棒グラフ"></canvas>
+    </div>
+    <div class="breakdown-wrap">
+      <div class="bk-card">
+        <p class="bk-head bk-head-A">グループA（アチーブメント奨励金対象）内訳</p>
+        <div id="bk-a"></div>
+      </div>
+      <div class="bk-card">
+        <p class="bk-head bk-head-B">グループB（派遣留学）内訳</p>
+        <div id="bk-b"></div>
+      </div>
+      <div class="bk-card">
+        <p class="bk-head bk-head-C">グループC（GLP）内訳</p>
+        <div id="bk-c"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">九州産業大学 グローバル教育センター｜2026年度 留学支援制度シミュレーター</div>
+</div>
+
+<script>
+var chartInst = null;
+
+function syncAApply(sel){
+  document.getElementById('chk-a-none').checked = sel==='none';
+  document.getElementById('chk-a-apply').checked = sel==='apply';
+  document.getElementById('a-detail').style.display = sel==='apply'?'block':'none';
+}
+
+function syncFSP(){
+  var fsp = document.getElementById('chk-fsp').checked;
+  document.getElementById('fsp-round1-label').style.display = fsp?'block':'none';
+  document.getElementById('a-round2').style.display = fsp?'block':'none';
+}
+
+function syncA(){
+  var ojt = document.getElementById('chk-ojt').checked;
+  var kojin = document.getElementById('chk-kojin');
+  var gakubu = document.getElementById('chk-gakubu');
+  var achieve = document.getElementById('chk-achieve');
+  if(ojt){
+    achieve.checked=true; achieve.disabled=true;
+    kojin.checked=false; kojin.disabled=true;
+    gakubu.checked=false; gakubu.disabled=true;
+    ['lbl-kojin','lbl-gakubu','lbl-achieve'].forEach(function(id){document.getElementById(id).classList.add('dis');});
+    document.getElementById('warn-ojt').style.display='block';
+  } else {
+    achieve.disabled=false; kojin.disabled=false; gakubu.disabled=false;
+    ['lbl-kojin','lbl-gakubu','lbl-achieve'].forEach(function(id){document.getElementById(id).classList.remove('dis');});
+    document.getElementById('warn-ojt').style.display='none';
+  }
+  document.getElementById('achieve-lv-wrap').style.display = achieve.checked?'block':'none';
+}
+
+function syncA2(sel){
+  document.getElementById('chk-a2-none').checked = sel==='none';
+  document.getElementById('chk-a2-apply').checked = sel==='apply';
+  document.getElementById('a2-detail').style.display = sel==='apply'?'block':'none';
+}
+
+function syncB(sel){
+  document.getElementById('chk-b-none').checked = sel==='none';
+  document.getElementById('chk-b-all').checked = sel==='all';
+  document.getElementById('chk-b-art').checked = sel==='art';
+  document.getElementById('b-dest-all').style.display = sel==='all'?'block':'none';
+  document.getElementById('b-dest-art').style.display = sel==='art'?'block':'none';
+}
+
+function syncC(sel){
+  document.getElementById('chk-c-none').checked = sel==='none';
+  document.getElementById('chk-c-iv').checked = sel==='iv';
+  document.getElementById('chk-c-v').checked = sel==='v';
+  document.getElementById('c-cost-wrap').style.display = sel==='none'?'none':'block';
+}
+
+function bkRow(name, val, isTotal){
+  return '<div class="bk-row"><span>'+(isTotal?'<strong>'+name+'</strong>':name)+'</span><span class="bk-amt">'+(isTotal?'<strong>'+val+'</strong>':val)+'</span></div>';
+}
+
+function calcGroupA(){
+  if(document.getElementById('chk-a-none').checked) return {total:0,none:true,rows:'',kojin:0,gakubu:0,achieve:0,kojin2:0};
+  var fsp = document.getElementById('chk-fsp').checked;
+  var costA = parseFloat(document.getElementById('a-cost').value)||0;
+  var area = document.getElementById('a-area').value;
+  var ojt = document.getElementById('chk-ojt').checked;
+  var useKojin = !ojt && document.getElementById('chk-kojin').checked;
+  var useGakubu = !ojt && document.getElementById('chk-gakubu').checked;
+  var useAchieve = document.getElementById('chk-achieve').checked;
+  var lv = parseInt(document.getElementById('a-lv').value)||0;
+  var kojinMax = area==='asia'?7:10;
+  var kojinAmt = useKojin?Math.min(kojinMax,costA):0;
+  var gakubuAmt = useGakubu?Math.min(costA*0.1,3):0;
+  var achieveAmt = 0;
+  if(ojt && useAchieve){ achieveAmt = Math.min(lv,costA); }
+  else if(useAchieve){ achieveAmt = Math.max(0,Math.min(lv,costA)-kojinAmt-gakubuAmt); }
+  var total1 = Math.min(kojinAmt+gakubuAmt+achieveAmt, costA);
+  var kojin2Amt = 0;
+  var rows = '';
+  if(fsp) rows += '<p class="bk-sub">1回目の留学</p>';
+  if(useKojin) rows += bkRow('個人留学支援', kojinAmt.toFixed(1)+'万円', false);
+  if(useGakubu) rows += bkRow('学部カリキュラム', gakubuAmt.toFixed(1)+'万円', false);
+  if(useAchieve && achieveAmt>0) rows += bkRow(ojt?'アチーブメント(OJT)':'アチーブメント', achieveAmt.toFixed(1)+'万円', false);
+  if(fsp && document.getElementById('chk-a2-apply').checked){
+    var cost2 = parseFloat(document.getElementById('a2-cost').value)||0;
+    var area2 = document.getElementById('a2-area').value;
+    var kojinMax2 = area2==='asia'?7:10;
+    kojin2Amt = Math.min(kojinMax2, cost2);
+    rows += '<p class="bk-sub" style="margin-top:6px">2回目の留学</p>';
+    rows += bkRow('個人留学支援（2回目）', kojin2Amt.toFixed(1)+'万円', false);
+  }
+  var grand = total1 + kojin2Amt;
+  rows += bkRow('小計', grand.toFixed(0)+'万円', true);
+  return {total:grand, none:false, rows:rows, kojin:kojinAmt, gakubu:gakubuAmt, achieve:achieveAmt, kojin2:kojin2Amt};
+}
+
+function calcAll(){
+  var resA = calcGroupA();
+  var bSelAll = document.getElementById('chk-b-all').checked;
+  var bSelArt = document.getElementById('chk-b-art').checked;
+  var totalB=0, bName='申請なし';
+  if(bSelAll){ totalB=parseInt(document.getElementById('b-dest').value)||0; bName='派遣留学（全学部）'; }
+  if(bSelArt){ totalB=parseInt(document.getElementById('b-art-dest').value)||0; bName='派遣留学（芸術・建築）'; }
+  var cNone = document.getElementById('chk-c-none').checked;
+  var totalC=0, cName='申請なし';
+  if(!cNone){
+    totalC = parseFloat(document.getElementById('c-cost').value)||0;
+    cName = document.getElementById('chk-c-iv').checked?'GLPⅣ':'GLPⅤ';
+  }
+  var grand = resA.total + totalB + totalC;
+  document.getElementById('rv-a').textContent = resA.none?'—':resA.total.toFixed(0)+'万円';
+  document.getElementById('rv-b').textContent = totalB>0?totalB.toFixed(0)+'万円':'—';
+  document.getElementById('rv-c').textContent = totalC>0?totalC.toFixed(0)+'万円':'—';
+  document.getElementById('rv-total').textContent = grand.toFixed(0)+'万円';
+  document.getElementById('bk-a').innerHTML = resA.none
+    ? '<div class="bk-row"><span style="color:#888780">申請なし</span><span>—</span></div>'
+    : resA.rows;
+  var bkB = '';
+  if(totalB>0){ bkB += bkRow(bName, totalB.toFixed(0)+'万円', false); bkB += bkRow('授業料','免除',false); bkB += bkRow('小計', totalB.toFixed(0)+'万円', true); }
+  else { bkB = '<div class="bk-row"><span style="color:#888780">申請なし</span><span>—</span></div>'; }
+  document.getElementById('bk-b').innerHTML = bkB;
+  var bkC = '';
+  if(totalC>0){ bkC += bkRow(cName, totalC.toFixed(0)+'万円', false); bkC += bkRow('小計', totalC.toFixed(0)+'万円', true); }
+  else { bkC = '<div class="bk-row"><span style="color:#888780">申請なし</span><span>—</span></div>'; }
+  document.getElementById('bk-c').innerHTML = bkC;
+  document.getElementById('result-all').style.display = 'block';
+  var fsp = document.getElementById('chk-fsp').checked && !resA.none;
+  var hasKojin2 = fsp && document.getElementById('chk-a2-apply').checked;
+  var datasets = [];
+  var COLORS = {kojin:'#1D9E75',gakubu:'#5DCAA5',achieve:'#9FE1CB',kojin2:'#085041',B:'#534AB7',C:'#BA7517'};
+  if(!resA.none){
+    if(resA.kojin>0) datasets.push({label:'個人留学支援（1回目）',data:[resA.kojin,0,0,resA.kojin],backgroundColor:COLORS.kojin,stack:'s',borderWidth:0,borderRadius:0});
+    if(resA.gakubu>0) datasets.push({label:'学部カリキュラム',data:[resA.gakubu,0,0,resA.gakubu],backgroundColor:COLORS.gakubu,stack:'s',borderWidth:0,borderRadius:0});
+    if(resA.achieve>0) datasets.push({label:'アチーブメント奨励金',data:[resA.achieve,0,0,resA.achieve],backgroundColor:COLORS.achieve,stack:'s',borderWidth:0,borderRadius:0});
+    if(hasKojin2 && resA.kojin2>0) datasets.push({label:'個人留学支援（2回目）',data:[resA.kojin2,0,0,resA.kojin2],backgroundColor:COLORS.kojin2,stack:'s',borderWidth:0,borderRadius:0});
+  }
+  if(totalB>0) datasets.push({label:'派遣留学',data:[0,totalB,0,totalB],backgroundColor:COLORS.B,stack:'s',borderWidth:0,borderRadius:0});
+  if(totalC>0) datasets.push({label:'GLP',data:[0,0,totalC,totalC],backgroundColor:COLORS.C,stack:'s',borderWidth:0,borderRadius:0});
+  if(datasets.length===0) datasets.push({label:'支援なし',data:[0,0,0,0],backgroundColor:'#D3D1C7',stack:'s',borderWidth:0,borderRadius:0});
+  var legendHtml = '';
+  datasets.forEach(function(ds){ legendHtml += '<span class="legend-item"><span class="legend-box" style="background:'+ds.backgroundColor+'"></span>'+ds.label+'</span>'; });
+  document.getElementById('legend-area').innerHTML = legendHtml;
+  var allTotals = [resA.total, totalB, totalC, grand];
+  var maxVal = Math.max.apply(null, allTotals);
+  var yMax = Math.ceil((maxVal * 1.2) / 10) * 10;
+  if(yMax < 10) yMax = 10;
+  var totalsPlugin = {
+    id:'totalsPlugin',
+    afterDatasetsDraw:function(chart){
+      var ctx = chart.ctx;
+      chart.data.labels.forEach(function(lbl,i){
+        var colTotal=0;
+        chart.data.datasets.forEach(function(ds){ colTotal+=(ds.data[i]||0); });
+        if(colTotal===0) return;
+        var bars=[];
+        chart.data.datasets.forEach(function(ds,di){ var m=chart.getDatasetMeta(di); if(m&&m.data&&m.data[i]) bars.push(m.data[i]); });
+        if(bars.length===0) return;
+        var topBar=bars.reduce(function(a,b){ return(a.y<b.y)?a:b; });
+        ctx.save();
+        ctx.font='500 12px sans-serif';
+        ctx.fillStyle='#444441';
+        ctx.textAlign='center';
+        ctx.fillText(colTotal.toFixed(0)+'万円', topBar.x, topBar.y - 8);
+        ctx.restore();
+      });
+    }
+  };
+  if(chartInst){ chartInst.destroy(); chartInst=null; }
+  chartInst = new Chart(document.getElementById('chart-main'),{
+    type:'bar',
+    plugins:[totalsPlugin],
+    data:{
+      labels:['グループA\n（アチーブメント）','グループB\n（派遣留学）','グループC\n（GLP）','合計'],
+      datasets:datasets
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      layout:{ padding:{ top: 24 } },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': '+ctx.parsed.y+'万円';}}}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{color:'#888780',font:{size:11}}},
+        y:{stacked:true,max:yMax,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#888780',font:{size:12},callback:function(v){return v+'万';}},beginAtZero:true}
+      }
+    }
+  });
+}
+syncA();
+</script>
+</body>
+</html>
